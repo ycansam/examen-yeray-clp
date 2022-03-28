@@ -17,32 +17,36 @@
     (declare (salience 1))
     (max_movimientos ?max_mov )
     (max_cajas ?max_cajas)
-    (robot ?x movimientos ?m cajas ?n_cajas)
+    (robot ?x movimientos ?m cajas ?n_cajas $?tipo)
     (limite ?xMax) 
     (test (and(< ?x ?xMax)(< ?m ?max_mov ))) 
     =>
-    (assert (robot (+ ?x 1) movimientos (+ ?m 1) cajas ?n_cajas )))
+    (assert (robot (+ ?x 1) movimientos (+ ?m 1) cajas ?n_cajas $?tipo)))
 
 (defrule mover_izquierda
     ( declare (salience 1))
     (max_movimientos ?max_mov )
-    (robot ?x movimientos ?m cajas ?n_cajas)
+    (robot ?x movimientos ?m cajas ?n_cajas $?tipo)
     (limite ?xMax) 
-    (test (and(> ?x 0)(< ?m ?max_mov ))) ;; mientras sea mayor que el limite
+    (test (and(> ?x 0)(< ?m ?max_mov )))
     =>
-    (assert (robot (- ?x 1) movimientos (+ ?m 1) cajas ?n_cajas )))
+    (assert (robot (- ?x 1) movimientos (+ ?m 1) cajas ?n_cajas $?tipo)))
 
 (defrule coger_cajas
     (declare (salience 10))
-    (max_cajas ?max_cajas)
-    ?f1 <- (robot ?x movimientos ?m cajas ?n_cajas )
+    (max_cajas ?max)
+    ?f1 <- (robot ?x movimientos ?m cajas ?n_cajas $?tipo)
     ?f2 <- (palet ?pos ?tipo ?cajas_disponibles)
     ?f3 <- (pedido ?numCajasPedido ?algo de ?tipoPedido)
     (test (= ?pos ?x))
     (test (< ?n_cajas ?cajas_disponibles))
-    (test (< ?n_cajas ?max_cajas))
+    (test (< ?n_cajas ?max))
     =>
+    (retract ?f1)
     (retract ?f2)
-    (assert palet ?pos ?tipo (- ?cajas_disponibles 1)) 
-    (assert pedido (- ?numCajasPedido 1) ?algo de ?tipoPedido) 
-    (assert (robot ?x movimientos ?m cajas (+ ?n_cajas 1)) ))
+    (retract ?f3)
+
+    (assert (robot ?x movimientos ?m cajas (+ ?n_cajas 1) ?tipo))
+    (assert (palet ?pos ?tipo (- ?cajas_disponibles 1)))
+    (assert (pedido (- ?numCajasPedido 1) ?algo de ?tipoPedido))
+)
